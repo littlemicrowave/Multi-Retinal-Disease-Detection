@@ -137,7 +137,6 @@ class FocalLoss(nn.Module):
 
 if __name__ == "__main__":
     num_classes = 3
-    print(torch.randn(16, 3) )
     criterion = FocalLoss(gamma=2, alpha=0.25, task_type='multi-label')
     inputs = torch.randn(16, num_classes)  # Logits from the model
     targets = torch.randint(0, 2, (16, num_classes)).float()  # Ground truth labels
