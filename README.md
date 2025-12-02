@@ -13,20 +13,24 @@ Perform transfer learning with three different setups using EfficientNet and Res
 1.  No fine-tuning: Evaluate directly on ODIR test set.
 2.  Frozen backbone, fine-tuning classifier only: Backbone weights are fixed, classifier is updated on ODIR training set.
 3.  Full fine-tuning: Both backbone and classifier are updated on ODIR training set.
+---
 ### Stage 2
 Evaluation of class-balancing techniques such as Focal Loss and Weighted BCE loss. 
 1.  Focal Loss: A loss function designed to address class imbalance by downweighting easy examples and focusing training on hard, misclassified ones. 
 2.  Class-Balanced Loss: Re-weight the BCE loss according to class frequency.
+---
 ### Stage 3
 Incorporation into the backbone and evaluation attention mechanisms:
 1.  Squeeze-and-Excitation (SE)
 2.  Multi-head Attention (MHA)
+---
 ### Stage 4
 Further performance development using:
 1.  More powerful backbone such as Swin Transformer and Vision Transformer to improve the disease detection performance.
 2.  GradCAM to analyze what features in the image are contributing the most and the least in the model's decision-making process, then use the attention map to guide the learning, thereby potentially improving the performance.
 3.  Ensemble learning methods (Stacking, Boosting, Weighted Average, Max Voting, Bagging) and analyze whether the performance increases or not.
 4.  VAE to generate new retinal images in order to augment the training set.
+---
 ### Stage 5
 Reporting the result.
 ## Timings
