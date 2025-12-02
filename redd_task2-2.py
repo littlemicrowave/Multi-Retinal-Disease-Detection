@@ -6,7 +6,7 @@ import torch.nn.functional as F
 class ClassBalancedLoss(nn.Module):
     def __init__(self,
                  beta=0.999,
-                 labels=None,     # NEW: full training labels passed here
+                 labels=None, 
                  reduction='mean',
                  task_type='multi-label'):
         """
