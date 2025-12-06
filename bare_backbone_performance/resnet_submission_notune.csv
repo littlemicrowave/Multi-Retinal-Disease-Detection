@@ -188,7 +188,7 @@ id,D,G,A
 1353_left.jpg,0,1,0
 1318_left.jpg,1,1,1
 1362_left.jpg,0,0,0
-1277_left.jpg,1,0,1
+1277_left.jpg,0,0,1
 1268_right.jpg,0,1,0
 1455_left.jpg,0,1,0
 1301_left.jpg,0,0,1
@@ -199,7 +199,7 @@ id,D,G,A
 1284_right.jpg,0,0,0
 1990_right.jpg,0,1,0
 1279_right.jpg,1,0,0
-1880_left.jpg,1,0,1
+1880_left.jpg,0,0,1
 615_right.jpg,0,0,0
 102_right.jpg,1,0,1
 152_right.jpg,0,0,0
@@ -222,13 +222,13 @@ id,D,G,A
 1859_right.jpg,1,0,1
 1843_left.jpg,0,0,1
 2053_left.jpg,0,0,0
-1857_right.jpg,1,0,0
+1857_right.jpg,0,0,0
 1876_right.jpg,0,0,0
 1819_right.jpg,1,0,0
 410_left.jpg,0,0,0
 319_left.jpg,0,0,0
 615_left.jpg,0,0,0
-164_right.jpg,1,0,1
+164_right.jpg,0,0,1
 377_right.jpg,0,0,0
 1854_right.jpg,0,0,1
 1202_left.jpg,1,1,1
