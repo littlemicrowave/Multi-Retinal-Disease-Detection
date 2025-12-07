@@ -1,7 +1,7 @@
 id,D,G,A
 4595_right.jpg,1,0,0
 4155_left.jpg,1,0,0
-597_left.jpg,0,0,1
+597_left.jpg,1,0,0
 4268_right.jpg,1,0,0
 579_right.jpg,1,0,0
 4395_left.jpg,1,0,0
@@ -19,7 +19,7 @@ id,D,G,A
 4686_right.jpg,1,0,0
 4596_left.jpg,1,0,0
 3971_left.jpg,1,0,0
-392_right.jpg,0,1,0
+392_right.jpg,0,0,0
 762_left.jpg,1,0,0
 1022_right.jpg,1,0,0
 864_right.jpg,1,0,0
@@ -90,7 +90,7 @@ id,D,G,A
 4572_left.jpg,1,0,0
 4561_right.jpg,1,0,0
 1965_right.jpg,1,0,0
-4460_right.jpg,0,0,1
+4460_right.jpg,1,0,0
 4603_left.jpg,1,0,0
 4299_left.jpg,1,0,0
 4160_left.jpg,1,0,0
@@ -112,12 +112,12 @@ id,D,G,A
 431_right.jpg,0,1,0
 4397_right.jpg,1,0,0
 64_left.jpg,1,0,0
-4334_left.jpg,0,0,1
+4334_left.jpg,1,0,1
 916_left.jpg,1,0,0
 4580_right.jpg,1,0,0
 4094_right.jpg,1,0,0
 2078_right.jpg,1,0,0
-4196_left.jpg,0,0,0
+4196_left.jpg,1,0,0
 3973_left.jpg,1,0,0
 3953_right.jpg,0,1,0
 4417_right.jpg,1,0,0
@@ -145,7 +145,7 @@ id,D,G,A
 4547_left.jpg,1,0,0
 169_right.jpg,0,0,0
 4136_left.jpg,1,0,0
-93_right.jpg,0,0,0
+93_right.jpg,1,0,0
 4484_right.jpg,1,0,0
 914_left.jpg,1,0,0
 462_left.jpg,1,0,0
@@ -166,10 +166,10 @@ id,D,G,A
 1250_left.jpg,0,1,0
 1239_right.jpg,1,0,0
 1287_left.jpg,0,0,0
-1234_right.jpg,0,0,0
+1234_right.jpg,1,0,0
 1503_right.jpg,1,0,0
 1401_right.jpg,0,1,0
-1507_right.jpg,1,1,0
+1507_right.jpg,0,1,0
 1419_left.jpg,0,0,0
 1210_right.jpg,1,0,0
 1440_right.jpg,1,0,0
@@ -181,7 +181,7 @@ id,D,G,A
 1232_right.jpg,0,1,0
 1487_right.jpg,1,0,0
 1515_left.jpg,0,1,0
-1214_left.jpg,0,0,1
+1214_left.jpg,0,0,0
 1377_right.jpg,0,0,0
 1421_left.jpg,0,0,0
 1963_right.jpg,0,1,0
@@ -191,7 +191,7 @@ id,D,G,A
 1277_left.jpg,1,0,0
 1268_right.jpg,0,1,0
 1455_left.jpg,1,1,0
-1301_left.jpg,0,0,0
+1301_left.jpg,0,1,0
 2074_left.jpg,1,0,0
 1213_right.jpg,0,0,0
 1418_left.jpg,1,0,0
@@ -206,7 +206,7 @@ id,D,G,A
 410_right.jpg,1,0,0
 1891_right.jpg,0,0,0
 992_left.jpg,0,0,1
-160_right.jpg,0,0,1
+160_right.jpg,1,0,1
 1817_left.jpg,0,0,1
 532_left.jpg,1,0,0
 1874_right.jpg,1,0,0
@@ -232,7 +232,7 @@ id,D,G,A
 377_right.jpg,1,0,0
 1854_right.jpg,1,0,0
 1202_left.jpg,1,0,0
-1893_right.jpg,0,0,1
+1893_right.jpg,1,0,1
 1841_left.jpg,0,0,1
 1844_left.jpg,0,0,1
 971_right.jpg,1,0,0
