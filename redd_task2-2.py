@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.data import Dataset
 
 
 class ClassBalancedLoss(nn.Module):
@@ -77,11 +78,24 @@ class ClassBalancedLoss(nn.Module):
 
 
 if __name__ == "__main__":
+    class TestDataset(Dataset):
+        def __init__(self, inputs, labels):
+            self.inputs = inputs
+            self.labels = labels
+
+        def __len__(self):
+            return len(self.inputs)
+            
+        def __getitem__(self, idx):
+            return self.inputs[idx], self.labels[idx]
+        
     num_classes = 3
     inputs = torch.randn(16, num_classes)  # Logits from the model
     targets = torch.randint(0, 2, (16, num_classes)).float()  # Ground truth labels
 
-    criterion = ClassBalancedLoss(labels=targets)
+    dataset = TestDataset(inputs, targets)
+
+    criterion = ClassBalancedLoss(dataset)
     loss = criterion(inputs, targets)
 
     print(f'Multi-label Class-Balance Loss: {loss.item()}')
