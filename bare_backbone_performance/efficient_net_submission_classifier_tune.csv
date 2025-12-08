@@ -1,7 +1,7 @@
 id,D,G,A
 4595_right.jpg,1,0,0
 4155_left.jpg,1,0,0
-597_left.jpg,1,0,0
+597_left.jpg,0,0,0
 4268_right.jpg,1,0,0
 579_right.jpg,1,0,0
 4395_left.jpg,1,0,0
@@ -19,7 +19,7 @@ id,D,G,A
 4686_right.jpg,1,0,0
 4596_left.jpg,1,0,0
 3971_left.jpg,1,0,0
-392_right.jpg,0,0,0
+392_right.jpg,0,1,0
 762_left.jpg,1,0,0
 1022_right.jpg,1,0,0
 864_right.jpg,1,0,0
@@ -112,7 +112,7 @@ id,D,G,A
 431_right.jpg,0,1,0
 4397_right.jpg,1,0,0
 64_left.jpg,1,0,0
-4334_left.jpg,1,0,1
+4334_left.jpg,0,0,1
 916_left.jpg,1,0,0
 4580_right.jpg,1,0,0
 4094_right.jpg,1,0,0
@@ -166,16 +166,16 @@ id,D,G,A
 1250_left.jpg,0,1,0
 1239_right.jpg,1,0,0
 1287_left.jpg,0,0,0
-1234_right.jpg,1,0,0
+1234_right.jpg,0,0,0
 1503_right.jpg,1,0,0
 1401_right.jpg,0,1,0
-1507_right.jpg,0,1,0
+1507_right.jpg,1,1,0
 1419_left.jpg,0,0,0
 1210_right.jpg,1,0,0
 1440_right.jpg,1,0,0
 1417_right.jpg,0,1,0
 1469_right.jpg,1,1,0
-1392_left.jpg,0,0,0
+1392_left.jpg,1,0,0
 1865_left.jpg,0,1,0
 1246_right.jpg,0,1,0
 1232_right.jpg,0,1,0
@@ -193,7 +193,7 @@ id,D,G,A
 1455_left.jpg,1,1,0
 1301_left.jpg,0,1,0
 2074_left.jpg,1,0,0
-1213_right.jpg,0,0,0
+1213_right.jpg,1,0,0
 1418_left.jpg,1,0,0
 1259_left.jpg,1,0,0
 1284_right.jpg,1,0,0
@@ -206,7 +206,7 @@ id,D,G,A
 410_right.jpg,1,0,0
 1891_right.jpg,0,0,0
 992_left.jpg,0,0,1
-160_right.jpg,1,0,1
+160_right.jpg,1,0,0
 1817_left.jpg,0,0,1
 532_left.jpg,1,0,0
 1874_right.jpg,1,0,0
@@ -224,7 +224,7 @@ id,D,G,A
 2053_left.jpg,1,0,0
 1857_right.jpg,0,0,1
 1876_right.jpg,1,0,0
-1819_right.jpg,1,0,1
+1819_right.jpg,1,0,0
 410_left.jpg,1,0,0
 319_left.jpg,1,0,0
 615_left.jpg,1,0,0
@@ -232,7 +232,7 @@ id,D,G,A
 377_right.jpg,1,0,0
 1854_right.jpg,1,0,0
 1202_left.jpg,1,0,0
-1893_right.jpg,1,0,1
+1893_right.jpg,0,0,1
 1841_left.jpg,0,0,1
 1844_left.jpg,0,0,1
 971_right.jpg,1,0,0
