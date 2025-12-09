@@ -95,7 +95,7 @@ def eval_model(model, dataset, csv_file = None, report_dir = None):
         data.to_csv(csv_file, index = False)
 
 
-def train_model(model, train_data, eval_data, optimizer, criterion, epochs, stepLR = None, save_as = None):
+def train_model(model, train_data, eval_data, optimizer, criterion, epochs, stepLR = None, save_as = None, monitor = "loss"):
     train_loader = DataLoader(train_data,  BATCH, shuffle=True)
     val_loader = DataLoader(eval_data, BATCH, shuffle=False)
     train_size = len(train_data.data)
@@ -107,6 +107,8 @@ def train_model(model, train_data, eval_data, optimizer, criterion, epochs, step
     f1 = []
     accuracy = []
     best_score = np.inf
+    if monitor == "f1":
+        best_score = -1
     for i in range(epochs):
         model.train()
         train_loss = 0
@@ -151,11 +153,20 @@ def train_model(model, train_data, eval_data, optimizer, criterion, epochs, step
         val_losses.append(val_loss)
 
         #saving model if score imporved
-        if best_score > val_loss :
-            print("Model improved! Saving if save_as is set.")
+        improved = False
+        if monitor == 'f1' and best_score < val_f1:
+            improved = True
+            best_score = val_f1
+        elif monitor == "loss"  and best_score > val_loss:
+            improved = True
             best_score = val_loss
+            
+
+        if improved:
+            print("Model improved! Saving if save_as is set.")
             if save_as != None:
                 torch.save(model.state_dict(), save_as)
+
         f1.append(val_f1)
         accuracy.append(val_accuracy)
         if stepLR != None:

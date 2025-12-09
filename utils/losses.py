@@ -2,7 +2,26 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset
+from .train_eval import label_names
+from .train_eval import device
+from torchvision.ops import focal_loss
 
+class WeightedBCE(nn.Module):
+    """
+    Weighted BCE for project dataset
+    """
+
+    def __init__(self, dataset):
+        super().__init__()
+        assert dataset is not None, "You must provide ODIR labels"
+        
+        pos = dataset.data[label_names].sum(axis = 0).to_numpy()
+        neg = len(dataset.data) - pos
+        self.weights = torch.tensor(neg / pos,  dtype=torch.float32, device=device)
+
+    def forward(self, inputs, targets):
+        return F.binary_cross_entropy_with_logits(inputs, targets, weight=self.weights, reduction="mean")
+    
 
 class FocalLoss(nn.Module):
     def __init__(self, gamma=2, alpha=None, reduction='mean', task_type='binary', num_classes=None):
