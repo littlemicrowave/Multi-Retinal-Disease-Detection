@@ -103,7 +103,7 @@ class MultiHeadAttentionCNN(nn.Module):
 
         #split heads
         q = torch.reshape(q, [b, seq_len, self.num_heads, self.head_depth]).transpose(1, 2)
-        k = torch.reshape(q, [b, seq_len, self.num_heads, self.head_depth]).transpose(1, 2)
+        k = torch.reshape(k, [b, seq_len, self.num_heads, self.head_depth]).transpose(1, 2)
         v = torch.reshape(v, [b, seq_len, self.num_heads, self.head_depth]).transpose(1, 2)
 
         #attention compute
