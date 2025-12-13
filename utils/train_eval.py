@@ -11,6 +11,7 @@ import pandas as pd
 import os
 from torchsummary import summary
 import numpy as np
+from .blocks import *
 
 #defaults
 BATCH = 32
@@ -51,9 +52,22 @@ class RetinaMultiLabelDataset(Dataset):
         if self.transform:
             img = self.transform(img)
         return img, labels
+
+
+class FeaturesPlusSE(nn.Module):
+    def __init__(self, features, ch=1280, ratio=16):
+        super().__init__()
+        self.features = features
+        self.se = SEBlock(ch, ratio)
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.se(x)
+        return x
+
     
 class Classifier(nn.Module):
-    def __init__(self, backbone = "resnet", dir = None):
+    def __init__(self, backbone = "resnet", block=None ,dir = None):
         super().__init__()
 
         if dir == None:
@@ -69,6 +83,9 @@ class Classifier(nn.Module):
         else:
             raise ValueError("Unsupported backbone")
         self.model.load_state_dict(layers)
+
+        if block == "se":
+            self.model.features = FeaturesPlusSE(self.model.features)
     
     def forward(self, X):
         return self.model(X)
