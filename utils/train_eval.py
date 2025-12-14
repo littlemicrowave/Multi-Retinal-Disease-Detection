@@ -89,6 +89,34 @@ class Classifier(nn.Module):
     
     def forward(self, X):
         return self.model(X)
+    
+
+class Resnet_MHA_SE(nn.Module):
+    def __init__(self, block = None, backbone_dir = None):
+        super().__init__()
+        if block not in ["se", "mha"]:
+            raise ValueError
+        if backbone_dir == None:
+            raise FileNotFoundError
+        layers = torch.load(backbone_dir)
+        self.model = models.resnet18()
+        channels = self.model.fc.in_features
+        self.model.fc = nn.Linear(channels, 3)
+        self.model.load_state_dict(layers)
+        if block == "se":
+            self.model.layer4.add_module(block, SEBlock(channels, ratio=16))
+        if block == "mha":
+            self.model.layer4.add_module(block, MultiHeadAttentionCNN(channels, 16))
+    def freeze_model(self):
+        for p in self.model.parameters():
+            p.requires_grad = False
+    def unfreeze_module(self, name: str):
+        for n, module in self.model.named_modules():
+            if name in n:
+                for p in module.parameters():
+                    p.requires_grad = True 
+    def forward(self, X):
+        return self.model(X)
         
 
 def eval_model(model, dataset, csv_file = None, report_dir = None):

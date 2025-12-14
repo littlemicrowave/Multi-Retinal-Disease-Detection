@@ -1,60 +1,3 @@
-'''
-class MultiHeadAttention(tf.keras.layers.Layer):
-    def __init__(self, word_vector_len, heads):
-        super().__init__()
-        self.word_vector_len = word_vector_len
-        self.heads = heads
-        if word_vector_len % heads != 0:
-            raise "Word vector should be divisible by number of heads"
-        self.head_depth = int(word_vector_len / heads)
-
-        #Initializing Dense layers for queries, keys, values and output
-        self.wq = tf.keras.layers.Dense(word_vector_len)
-        self.wk = tf.keras.layers.Dense(word_vector_len)
-        self.wv = tf.keras.layers.Dense(word_vector_len)
-        
-        self.wo = tf.keras.layers.Dense(word_vector_len)
-
-    def calculateAttention(self, batch_size, sentence_len, q, k, v, mask = None):
-        attention_scores = tf.matmul(q, k, transpose_b=True) / tf.sqrt(tf.cast(self.head_depth, dtype=tf.float32)) # (batch_size, heads, sentence_len, sentence_len)
-        if mask is not None:
-            attention_scores += (mask * -1e9) #masking for decoder
-        attention_scores = tf.nn.softmax(attention_scores, axis=-1)  
-        attention_output = tf.matmul(attention_scores, v) # (batch_size, heads, sentence_len, head_depth)
-
-        #re-arraning and combining heads back
-        attention_output = tf.transpose(attention_output, perm=[0, 2, 1, 3])  # (batch, seq_len, heads, head_depth)
-        attention_output = tf.reshape(attention_output, [batch_size, sentence_len, self.word_vector_len])
-
-        #regualizer
-        attention_output = tf.keras.layers.Dropout(0.2)(attention_output)
-
-        return attention_output
-    
-    def call(self, q, k, v, mask = None):
-        batch_size = tf.shape(q)[0]
-        sentence_len = tf.shape(q)[1]
-        queries = self.wq(q)
-        keys = self.wk(k)
-        values = self.wv(v)
-
-        #slicing word vectors into pieces of size head_depth, amount of such pieces is equal to amount of heads. That's why it is neccessary that word_vecor_len is divisible by amount of heads
-        #rearraging our matrix to shape so it would be [batch_size, heads, sentence length, head depth]
-
-        queries = tf.reshape(queries, [batch_size, sentence_len, self.heads, self.head_depth])
-        queries = tf.transpose(queries, perm = [0, 2, 1, 3]) # (batch_size, heads, sentence_len, head_depth)
-
-        keys = tf.reshape(keys, [batch_size, sentence_len, self.heads, self.head_depth])
-        keys= tf.transpose(keys, perm = [0, 2, 1, 3])
-
-        values = tf.reshape(values, [batch_size, sentence_len, self.heads, self.head_depth])
-        values = tf.transpose(values, perm = [0, 2, 1, 3])
-
-        attention_output = self.calculateAttention(batch_size, sentence_len, queries, keys, values, mask)
-        output = self.wo(attention_output)
-
-        return output
-'''
 import torch
 import torch.nn as nn
 
@@ -74,8 +17,9 @@ class MultiHeadAttentionCNN(nn.Module):
         self.wq = nn.Linear(input_dim, input_dim)
         self.wk = nn.Linear(input_dim, input_dim)
         self.wv = nn.Linear(input_dim, input_dim)
-        self.wo = nn.Linear(input_dim, input_dim)
-
+        #self.wo = nn.Linear(input_dim, input_dim) #not used
+        self.scale_factor = nn.Parameter(torch.zeros(1), requires_grad=True)
+        self.norm = nn.LayerNorm(self.input_dim)
         self.softmax = nn.Softmax(dim=-1)
 
     def attention(self, q, k, v):
@@ -95,6 +39,7 @@ class MultiHeadAttentionCNN(nn.Module):
         seq_len = h * w
 
         #flatten spatial dimensions
+        x = torch.permute(x, [0, 2, 3, 1])
         x = torch.reshape(x, [b, seq_len, c])
 
         q = self.wq(x)
@@ -111,10 +56,11 @@ class MultiHeadAttentionCNN(nn.Module):
         #merge heads
         out = out.transpose(1, 2)
         out = out.reshape(b, seq_len, c)
-        #output projection
-        out = self.wo(out)
-        #rstores dimensions
-        out = torch.reshape(out, [b, h, w, c]).permute(0, 3, 1, 2)
-
+        #out = self.wo(out)
+        #add residual and scale
+        out = out * self.scale_factor + x
+        out = self.norm(out)
+        #permute and reshape
+        out = torch.permute(out, [0, 2, 1])
+        out = torch.reshape(out, [b, c, h, w])
         return out
-
