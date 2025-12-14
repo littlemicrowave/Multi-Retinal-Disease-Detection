@@ -64,3 +64,4 @@ class MultiHeadAttentionCNN(nn.Module):
         out = torch.permute(out, [0, 2, 1])
         out = torch.reshape(out, [b, c, h, w])
         return out
+
