@@ -106,7 +106,7 @@ class Resnet_MHA_SE(nn.Module):
         if block == "se":
             self.model.layer4.add_module(block, SEBlock(channels, ratio=16))
         if block == "mha":
-            self.model.layer4.add_module(block, MultiHeadAttentionCNN(channels, 16))
+            self.model.layer4.add_module(block, MultiHeadAttentionCNN(H=8, W=8, channels=channels, num_heads=4, projection_dim=128, use_rpe=True, max_rpe_dist=3))
     def freeze_model(self):
         for p in self.model.parameters():
             p.requires_grad = False

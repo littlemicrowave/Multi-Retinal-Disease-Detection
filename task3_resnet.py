@@ -5,7 +5,7 @@ resnet_dir = "pretrained_backbone/ckpt_resnet18_ep50.pt"
 model = Resnet_MHA_SE(block="mha", backbone_dir= resnet_dir).to(device)
 checkpoints_dir = "trained_models/"
 
-print("Resnet + MHA + weighted BCE")
+print("Resnet + MHA + BCE")
 ##Stage 1 classifier + mha finetuning
 model.freeze_model()
 model.unfreeze_module("mha")
@@ -29,10 +29,12 @@ eval_model(model, offsite_test)#, report_dir="task2/resnet_wbce_report_classifie
 for layer in model.parameters():
     layer.requires_grad = True
 print(summary(model, (3,IMG_SIZE, IMG_SIZE)))
+criterion = nn.BCEWithLogitsLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-4) #5e-4
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.3) #torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5) #0.5
-result = train_model(model, train, val, optimizer=optimizer, criterion=criterion, epochs=5, stepLR = scheduler, save_as=checkpoints_dir+"task3_mha_resnet.pt", monitor="loss")
+result = train_model(model, train, val, optimizer=optimizer, criterion=criterion, epochs=5, stepLR = scheduler, save_as=checkpoints_dir+"task3_mha_resnet.pt", monitor="f1")
 training_graphs(result, "task3/resnet_mha_full_tuning")
+
 ##Off-site test
 model.load_state_dict(torch.load(checkpoints_dir + "task3_mha_resnet.pt"))
 eval_model(model, offsite_test, report_dir = "task3/resnet_mha_report_full_tuning.txt")
@@ -40,9 +42,9 @@ eval_model(model, offsite_test, report_dir = "task3/resnet_mha_report_full_tunin
 ##On-siste test export
 eval_model(model, onsite_test, "task3/resnet_mha_submission_full.csv")
 
-
 ############################# Same for Focal Loss ##########################
-print("Resnet + SE + weightedBCE")
+
+print("Resnet + SE + BCE")
 #load clean model
 model = Resnet_MHA_SE(block="se", backbone_dir= resnet_dir).to(device)
 checkpoints_dir = "trained_models/"

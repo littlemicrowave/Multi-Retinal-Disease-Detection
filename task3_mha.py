@@ -17,10 +17,11 @@ class MultiHeadAttentionCNN(nn.Module):
         self.wq = nn.Linear(input_dim, input_dim)
         self.wk = nn.Linear(input_dim, input_dim)
         self.wv = nn.Linear(input_dim, input_dim)
-        #self.wo = nn.Linear(input_dim, input_dim) #not used
-        self.scale_factor = nn.Parameter(torch.zeros(1), requires_grad=True)
+     #   self.wo = nn.Linear(input_dim, input_dim)
+        self.scale_factor = nn.Parameter(torch.tensor(0.5, torch.float32), requires_grad=True)
         self.norm = nn.LayerNorm(self.input_dim)
         self.softmax = nn.Softmax(dim=-1)
+       # self.dropout = nn.Dropout(0.2)
 
     def attention(self, q, k, v):
         # q, k, v: (b, heads, seq_len, head_dim)
@@ -53,10 +54,12 @@ class MultiHeadAttentionCNN(nn.Module):
 
         #attention compute
         out = self.attention(q, k, v)
+
         #merge heads
         out = out.transpose(1, 2)
         out = out.reshape(b, seq_len, c)
-        #out = self.wo(out)
+      #  out = self.wo(out)
+      #  out = self.dropout(out)
         #add residual and scale
         out = out * self.scale_factor + x
         out = self.norm(out)
