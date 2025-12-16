@@ -36,9 +36,9 @@ class MultiHeadAttentionCNN(nn.Module):
         self.mask = mask
         self.attn_denum = self.head_depth ** (-0.5)
         self.xproj = nn.Linear(channels, projection_dim)
-        self.wq = nn.Linear(projection_dim, projection_dim)
-        self.wk = nn.Linear(projection_dim, projection_dim)
-        self.wv = nn.Linear(projection_dim, projection_dim)
+        self.wq = nn.Linear(projection_dim, projection_dim, bias = False)
+        self.wk = nn.Linear(projection_dim, projection_dim, bias = False)
+        self.wv = nn.Linear(projection_dim, projection_dim, bias = False)
         self.wo = nn.Linear(projection_dim, channels)
         self.scale_factor = nn.Parameter(torch.tensor(0.5), requires_grad=True)
         self.norm = nn.LayerNorm(self.input_dim)
@@ -52,12 +52,15 @@ class MultiHeadAttentionCNN(nn.Module):
     def attention(self, q, k, v):
         # q,k,v: (B, H, L, D)
 
-        scores = torch.matmul(q, k.transpose(-2, -1)) * self.attn_denum
+        scores = torch.matmul(q, k.transpose(-2, -1))
+        
         if self.use_rpe:
             Rk = self.rpe.get_k()                      # (L, L, D)
             pos_scores = torch.einsum("bhld,lmd->bhlm", q, Rk)
             scores = scores + pos_scores
-
+            
+        scores = scores * self.attn_denum
+        
         if self.mask is not None:
             scores = scores.masked_fill(self.mask, -torch.inf)
 
