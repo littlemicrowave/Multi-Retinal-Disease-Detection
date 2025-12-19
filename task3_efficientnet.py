@@ -72,11 +72,12 @@ efficientnet_dir = "pretrained_backbone/ckpt_efficientnet_ep50.pt"
 # eval_model(model, onsite_test, "task3/efficientnet_se_submission_full.csv")
 
 ######## MHA #########
+
 model = Classifier(backbone="efficientnet", block="mha", dir=efficientnet_dir).to(
     device
 )
 checkpoints_dir = "trained_models/"
-
+'''
 print("Efficientnet + MHA")
 # Stage 1 backbone + MHA finetuning
 params = model.parameters()
@@ -104,7 +105,7 @@ result = train_model(
     save_as=checkpoints_dir + "efficientnet_mha_tuned_classifer.pt",
 )
 training_graphs(result, "task3/efficientnet_mha_classsifer_tuning")
-
+'''
 ## Off-site test
 model.load_state_dict(
     torch.load(checkpoints_dir + "efficientnet_mha_tuned_classifer.pt")
@@ -118,10 +119,10 @@ for layer in model.parameters():
     layer.requires_grad = True
 
 optimizer = torch.optim.AdamW(
-    [p for p in model.parameters() if p.requires_grad], lr=5e-5, weight_decay=1e-4
+    [p for p in model.parameters() if p.requires_grad], lr=1e-3, weight_decay=1e-4
 )  # 1e-4
-# scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.7)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5)
+scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.5)
+#scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5)
 criterion = nn.BCEWithLogitsLoss()
 result = train_model(
     model,
@@ -129,9 +130,9 @@ result = train_model(
     val,
     optimizer=optimizer,
     criterion=criterion,
-    epochs=20,
+    epochs=10,
     stepLR=scheduler,
-    save_as=checkpoints_dir + "task3_mha_efficientnet.pt",
+    save_as=checkpoints_dir + "task3_mha_efficientnet.pt", monitor=None #f1 or None 81.5 - 82.23
 )
 training_graphs(result, "task3/efficientnet_mha_full_tuning")
 ##Off-site test

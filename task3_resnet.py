@@ -30,9 +30,9 @@ for layer in model.parameters():
     layer.requires_grad = True
 print(summary(model, (3,IMG_SIZE, IMG_SIZE)))
 criterion = nn.BCEWithLogitsLoss()
-optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-4) #5e-4
-scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.3) #torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5) #0.5
-result = train_model(model, train, val, optimizer=optimizer, criterion=criterion, epochs=5, stepLR = scheduler, save_as=checkpoints_dir+"task3_mha_resnet.pt", monitor="f1")
+optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-4) #3e-4
+scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.5) #0.3
+result = train_model(model, train, val, optimizer=optimizer, criterion=criterion, epochs=10, stepLR = scheduler, save_as=checkpoints_dir+"task3_mha_resnet.pt", monitor="f1") #Either None of F1
 training_graphs(result, "task3/resnet_mha_full_tuning")
 
 ##Off-site test
@@ -42,7 +42,7 @@ eval_model(model, offsite_test, report_dir = "task3/resnet_mha_report_full_tunin
 ##On-siste test export
 eval_model(model, onsite_test, "task3/resnet_mha_submission_full.csv")
 
-############################# Same for Focal Loss ##########################
+############################# Same for SE #########################
 
 print("Resnet + SE + BCE")
 #load clean model

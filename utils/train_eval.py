@@ -221,6 +221,9 @@ def train_model(model, train_data, eval_data, optimizer, criterion, epochs, step
         accuracy.append(val_accuracy)
         if stepLR != None:
                 stepLR.step()
+    if monitor == None:
+        print("Model saved.")
+        torch.save(model.state_dict(), save_as)
     return {"train_loss": train_losses, "val_loss": val_losses, "f1": f1, "accuracy": accuracy, "epochs": epochs}
 
 def training_graphs(results, save_dir):
