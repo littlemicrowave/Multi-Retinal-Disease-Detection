@@ -67,11 +67,11 @@ eval_model(model, offsite_test)
 for layer in model.parameters():
     layer.requires_grad = True
 
-criterion =  FocalLoss(gamma=2, alpha=0.65, reduction="mean", task_type="multi-label")
+criterion =  FocalLoss(gamma=2, alpha=0.65, reduction="mean", task_type="multi-label") #0.65 - 0.8 works best
 optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-4) #1e-4
 
-scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.6) #
-result = train_model(model, train, val, optimizer=optimizer, criterion=criterion, epochs=5, stepLR = scheduler, save_as=checkpoints_dir+"task2_focal_resnet.pt", monitor="f1")
+scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.7) #0.6 - 0.8 OK
+result = train_model(model, train, val, optimizer=optimizer, criterion=criterion, epochs=10, stepLR = scheduler, save_as=checkpoints_dir+"task2_focal_resnet.pt", monitor="f1") #F1 or None
 training_graphs(result, "task2/resnet_focal_full_tuning")
 ##Off-site test
 model.load_state_dict(torch.load(checkpoints_dir + "task2_focal_resnet.pt"))
