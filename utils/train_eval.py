@@ -13,6 +13,9 @@ from torchsummary import summary
 import numpy as np
 from .blocks import *
 
+# reproducibility
+torch.manual_seed(0)
+
 #defaults
 BATCH = 32
 IMG_SIZE = 256
@@ -86,6 +89,8 @@ class Classifier(nn.Module):
 
         if block == "se":
             self.model.features = FeaturesPlusSE(self.model.features)
+        elif block == "mha":
+            self.model.features.add_module("mha", MultiHeadAttentionCNN(H=8, W=8, channels=1280, num_heads=4, projection_dim=256, use_rpe=True, max_rpe_dist=3))
     
     def forward(self, X):
         return self.model(X)
