@@ -6,6 +6,13 @@ from .train_eval import label_names
 from .train_eval import device
 from torchvision.ops import focal_loss
 
+
+def elbo_loss(recon_x, x, mu, logvar, beta=1.0):
+    recon = F.binary_cross_entropy_with_logits(recon_x, x, reduction="none").sum(dim=(1,2,3)).mean()
+    kl = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
+    kl = kl.sum(dim=(1,2,3)).mean()
+    return recon + beta * kl, recon, kl
+
 class WeightedBCE(nn.Module):
     """
     Weighted BCE for project dataset
