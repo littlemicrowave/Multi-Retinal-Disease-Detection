@@ -1,16 +1,23 @@
-from PIL import Image
+import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, models
-from sklearn.metrics import classification_report, accuracy_score, f1_score
+from sklearn.metrics import cohen_kappa_score, classification_report, accuracy_score, f1_score
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from torchsummary import summary
-import numpy as np
+from torchvision import models, transforms
+from tqdm import tqdm
+from utils.image import *
+
 from .blocks import *
 
 # reproducibility
@@ -124,8 +131,8 @@ class Resnet_MHA_SE(nn.Module):
         return self.model(X)
         
 
-def eval_model(model, dataset, csv_file = None, report_dir = None):
-    loader = DataLoader(dataset, BATCH, shuffle=False)
+def eval_model(model, dataset, csv_file = None, report_dir = None, cam=None, cam_max_batches=None, shuffle=False):
+    loader = DataLoader(dataset, BATCH, shuffle=shuffle)
     preds = []
     model.eval()
     with torch.no_grad():
@@ -143,6 +150,37 @@ def eval_model(model, dataset, csv_file = None, report_dir = None):
         data = dataset.data.copy()
         data[label_names] = preds
         data.to_csv(csv_file, index = False)
+
+    if cam is not None:
+      generated = 0
+      images, targets, preds, cams = [], [], [], {}
+      for X, Y in tqdm(loader):
+        X = X.to(device)
+        with torch.enable_grad():
+          model.zero_grad(set_to_none=True)
+          logits = model(X)
+          output = (nn.functional.sigmoid(logits) > 0.5).long()
+
+          for class_idx in range(len(label_names)):
+            model.zero_grad(set_to_none=True)
+
+            score = logits[:, class_idx].sum()
+            score.backward(retain_graph=True)
+
+            cam_map = cam.compute_cam()   # HxW in [0,1]
+            if class_idx not in cams:
+              cams[class_idx] = []
+            cams[class_idx].extend(cam_map)
+
+
+          preds.extend(output.cpu().numpy())
+          images.extend(X.cpu().numpy())
+          targets.extend(Y)
+
+        generated += 1
+        if cam_max_batches and generated >= cam_max_batches:
+          break
+      return np.stack(images), cams, np.stack(targets), np.stack(preds)
 
 
 def train_model(model, train_data, eval_data, optimizer, criterion, epochs, stepLR = None, save_as = None, monitor = "loss"):

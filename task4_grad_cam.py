@@ -1,5 +1,8 @@
-from utils.train_eval import *
+import os
+
+import cv2
 from utils.losses import *
+from utils.train_eval import *
 
 
 class GradCAM:
@@ -61,4 +64,31 @@ checkpoints_dir = "trained_models/"
 print("Efficientnet")
 model.load_state_dict(torch.load(checkpoints_dir + "task1_efficient.pt"))
 cam = GradCAM(model, model.model.features[-1])
-eval_model(model, offsite_test, cam=cam)
+images, cams, targets, preds = eval_model(
+    model, offsite_test, cam=cam, cam_max_batches=100, shuffle=True
+)
+
+# overlay perclass cams on images and save
+output_dir = "task4"
+os.makedirs(output_dir, exist_ok=True)
+print(images.shape, type(cams[0]), targets.shape, preds.shape)
+for i in range(len(images)):
+    img = (np.transpose(images[i], (1, 2, 0)) * 255).astype(np.uint8)
+    target = targets[i]
+    pred = preds[i]
+    for class_idx in range(len(label_names)):
+        if target[class_idx] == 1 or pred[class_idx] == 1:
+            cam_map = cams[class_idx][i]
+            heatmap = cv2.applyColorMap(
+                (cam_map * 255).astype(np.uint8), cv2.COLORMAP_JET
+            )
+            heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+            overlay = cv2.addWeighted(img, 0.5, heatmap, 0.5, 0)
+            cv2.imwrite(
+                os.path.join(
+                    output_dir,
+                    f"img{i}_class{class_idx}_t{target[class_idx]}_p{pred[class_idx]}.png",
+                ),
+                cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR),
+            )
+            cams[class_idx].append(cam_map)
