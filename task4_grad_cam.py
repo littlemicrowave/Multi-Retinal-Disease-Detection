@@ -69,26 +69,16 @@ images, cams, targets, preds = eval_model(
 )
 
 # overlay perclass cams on images and save
-output_dir = "task4"
+output_dir = "task4/grad_cam_outputs/"
 os.makedirs(output_dir, exist_ok=True)
-print(images.shape, type(cams[0]), targets.shape, preds.shape)
 for i in range(len(images)):
-    img = (np.transpose(images[i], (1, 2, 0)) * 255).astype(np.uint8)
-    target = targets[i]
-    pred = preds[i]
-    for class_idx in range(len(label_names)):
-        if target[class_idx] == 1 or pred[class_idx] == 1:
-            cam_map = cams[class_idx][i]
-            heatmap = cv2.applyColorMap(
-                (cam_map * 255).astype(np.uint8), cv2.COLORMAP_JET
-            )
-            heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
-            overlay = cv2.addWeighted(img, 0.5, heatmap, 0.5, 0)
-            cv2.imwrite(
-                os.path.join(
-                    output_dir,
-                    f"img{i}_class{class_idx}_t{target[class_idx]}_p{pred[class_idx]}.png",
-                ),
-                cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR),
-            )
-            cams[class_idx].append(cam_map)
+    img = normalize_image(np.transpose(images[i], (1, 2, 0)))
+    for label in np.where(targets[i] == 1)[0]:
+        print(label, type(label))
+        cm = normalize_image(cams[int(label)][i])
+        plt.imshow(img)
+        plt.imshow(cm, alpha=0.55)
+        plt.title(f"target: {targets[i].astype(np.int8)} \n preds: {preds[i]}")
+        correct = "true" if targets[i][label] == preds[i][label] else "false"
+        plt.savefig(f"{output_dir}{i}_{label_names[int(label)]}_{correct}.png")
+        plt.clf()
