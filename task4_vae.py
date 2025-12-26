@@ -23,5 +23,5 @@ training_graphs_vae(results, "task4/cvae_tuning")
 '''
 visualize_reconstructions(encoder, decoder, val_dataset, device=device, num_samples=4, denorm_input=True)
 labels = torch.tensor([[0, 0, 1], [0, 1, 0], [1, 0, 0], [1, 0, 1]],dtype=torch.float).to(device)
-samples = sample(4, decoder=decoder, labels=labels, temp=1, n=3, seed=10)
+samples = sample(4, decoder=decoder, labels=labels, temp=1, n=3, seed=255)
 save_samples(samples, labels, path="task4/generated_cvae")
