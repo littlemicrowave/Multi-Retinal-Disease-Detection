@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from torchvision import transforms, models
 from sklearn.metrics import cohen_kappa_score, classification_report, accuracy_score, f1_score
 import matplotlib.pyplot as plt
@@ -288,7 +288,14 @@ def training_graphs(results, save_dir):
 
 
 def train_vae(encoder, decoder, elbo: callable, train_data, eval_data, optimizer, epochs, beta_max=1.0, kl_warmup_epochs=15, print_stats_every =10,  freeze_encoder_for = 10, stepLR=None,save_as=None):
-    train_loader = DataLoader(train_data, BATCH, shuffle=True)
+    pos = train_data.data[label_names].sum(axis = 0).to_numpy()
+    neg = len(train_data.data) - pos
+    class_weights = torch.tensor(neg / pos,  dtype=torch.float32)
+    labels = torch.tensor(train_data.data[label_names].to_numpy())
+    sample_weights = (class_weights * labels).sum(dim = 1)
+
+    sampler = WeightedRandomSampler(weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+    train_loader = DataLoader(train_data, BATCH, sampler=sampler)
     val_loader = DataLoader(eval_data, BATCH, shuffle=False)
     train_size = len(train_data)
     val_size = len(eval_data)
@@ -330,7 +337,7 @@ def train_vae(encoder, decoder, elbo: callable, train_data, eval_data, optimizer
 
             optimizer.zero_grad()
 
-            z, mu, logvar = encoder(X)
+            z, mu, logvar = encoder(X, labels)
             recon = decoder(z, labels)
 
             loss, recon_loss, kl_loss = elbo(recon, Y, mu, logvar, beta)
@@ -361,7 +368,7 @@ def train_vae(encoder, decoder, elbo: callable, train_data, eval_data, optimizer
                 Y = Y.to(device)
                 labels = labels.to(device)
 
-                z, mu, logvar = encoder(X)
+                z, mu, logvar = encoder(X, labels)
                 recon = decoder(z, labels)
 
                 loss, recon_loss, kl_loss = elbo(recon, Y, mu, logvar, beta)
@@ -442,7 +449,7 @@ def visualize_reconstructions(encoder, decoder, dataset, device, num_samples=4, 
             x_target = x_target.unsqueeze(0).to(device) # (1,3,128,128)
             labels = labels.unsqueeze(0).to(device)
 
-            z, _, _ = encoder(x_in)
+            z, _, _ = encoder(x_in, labels)
             recon = decoder(z, labels)
             recon = torch.sigmoid(recon)
 
@@ -467,31 +474,155 @@ def visualize_reconstructions(encoder, decoder, dataset, device, num_samples=4, 
     fig.savefig(path)
 
 
-def save_samples(samples, labels, path = "task4/generation"):
-    b, _, _, _ = samples.shape
-    fig, axes = plt.subplots(1, b, figsize=(16, 6))
-    labels = labels.cpu()
-    for ind in range(b):
-        x_out = samples[ind].cpu()
-        x_out = torch.sigmoid(x_out)
-        def show(ax, img, title):
-            img = img.permute(1, 2, 0).numpy()
-            ax.imshow(np.clip(img, 0, 1))
-            ax.set_title(title)
-            ax.axis("off")
-        show(axes[ind], x_out, f"Generated {labels[ind]}")
+def save_samples(samples, labels, path = "task4/generation", denorm = False):
+    k = len(samples)
+    for i in range(k):
+        b, _, _, _ = samples[i].shape
+        fig, axes = plt.subplots(1, b, figsize=(16, 6))
+        labels = labels.cpu()
+        for ind in range(b):
+            x_out = samples[i][ind].cpu()
+            if denorm:
+                x_out = (x_out + 1) / 2
+            else:
+                x_out = torch.sigmoid(x_out)
+            def show(ax, img, title):
+                img = img.permute(1, 2, 0).numpy()
+                ax.imshow(np.clip(img, 0, 1))
+                ax.set_title(title)
+                ax.axis("off")
+            show(axes[ind], x_out, f"Generated {labels[ind]}")
+        fig.savefig(path + f"_{i}")
 
-    fig.savefig(path)
 
-
-def sample(num_samples, decoder, labels, latent_shape = [32,4,4], temp = 0.3):
+def sample(num_samples, decoder, labels, latent_shape = [32,4,4], temp = 0.3, seed = 0, n = 1):
     shape = [num_samples] + latent_shape
-    decoder.eval()
-    with torch.no_grad():
-        z = temp*torch.randn(shape).to(device)
-        samples = decoder(z, labels)
+    samples = []
+    torch.manual_seed(seed)
+    while n:
+        z = temp*torch.randn(latent_shape).to(device)
+        z = z.expand(shape)
+        decoder.eval()
+        with torch.no_grad():
+        # z = temp*torch.randn(shape).to(device)
+            samples.append(decoder(z, labels))
+        n = n-1
     return samples
 
+
+def train_dcgan(nz, batch_size, g_network, d_network, g_optimizer, d_optimizer, real_train, epochs, grid_size, inject_noise = True, hinge = False, checkpoint_dir = "task4/", print_images = "task4/generated"):
+    pos = real_train.data[label_names].sum(axis = 0).to_numpy()
+    neg = len(real_train.data) - pos
+    class_weights = torch.tensor(neg / pos,  dtype=torch.float32)
+    labels = torch.tensor(real_train.data[label_names].to_numpy())
+    sample_weights = (class_weights * labels).sum(dim = 1)
+
+    def sample_labels(Y):
+        idx = torch.randint(0, len(Y), (batch_size,))
+        return Y[idx].to(device)
+
+    sampler = WeightedRandomSampler(weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+
+
+    train_loader = DataLoader(real_train, batch_size, shuffle=False, sampler=sampler)
+  #  val_loader = DataLoader(eval_data, BATCH, shuffle=False)
+    train_size = len(real_train)
+    num_batches = len(train_loader)
+#    val_size = len(eval_data)
+    if print_images:
+        fixed_noise = torch.randn((1, nz)).to(device)
+    d_losses = []
+    g_losses = []
+    loss = nn.BCEWithLogitsLoss()
+    aux_loss = nn.BCEWithLogitsLoss()
+    for epoch in range(epochs):
+        D_loss = 0
+        G_loss = 0
+        g_network.train()
+        d_network.train()
+        for (X, Y) in tqdm(train_loader, desc = "Training"):
+            d_optimizer.zero_grad()
+            X = X.to(device)
+            b_size = X.shape[0]
+            Y = Y.to(device)
+            # maximize log(D(x)) + log(1 - D(G(z)))
+            #pass true batch through D
+            if inject_noise:
+                X = torch.clamp(X + torch.empty_like(X, device=device).normal_(0.0, 0.1), -1, 1)
+            if len(grid_size) == 2:
+                smooth_true =  torch.empty((b_size,1, grid_size[0], grid_size[1]), device=device).uniform_(0.9, 1.0)
+                fake_labels = torch.zeros((b_size,1, grid_size[0], grid_size[1]), dtype=torch.float, device = device)
+                true_labels = torch.ones((b_size,1, grid_size[0], grid_size[1]), dtype=torch.float, device = device)
+            else:
+                smooth_true =  torch.empty((b_size,1), device=device).uniform_(0.9, 1.0)
+                fake_labels = torch.zeros((b_size,1), dtype=torch.float, device = device)
+                true_labels = torch.ones((b_size,1), dtype=torch.float, device = device)
+            d_out, preds= d_network(X, Y)
+
+            if not hinge:
+                d_loss_real = loss(d_out, smooth_true)
+            else:
+                d_loss_real  = F.relu(1 - d_out).mean()
+            aux_loss_real = aux_loss(preds, Y)
+
+            #fake batch
+            noise = torch.randn((b_size, nz), dtype = torch.float, device = device)
+            fake_Y = sample_labels(Y).float()
+            g_out = g_network(noise, fake_Y)
+            d_out, _ = d_network(g_out.detach(), fake_Y)
+
+            if not hinge:
+                d_loss_fake = loss(d_out, fake_labels)
+                err_D = 0.5 * (d_loss_fake + d_loss_real)
+            else:
+                d_loss_fake = F.relu(1 + d_out).mean()
+                err_D = (d_loss_fake + d_loss_real) 
+            err_D += 0.2*aux_loss_real#+ 0.1*(patch_out_fake + patch_loss_real)
+            err_D.backward()
+            d_optimizer.step()
+
+            #train G Adversarial
+            noise = torch.randn(b_size, nz, device=device)
+            fake_Y = sample_labels(Y).float()
+            g_out = g_network(noise, fake_Y)
+            g_optimizer.zero_grad()
+            d_out, aux_fake = d_network(g_out, fake_Y)
+
+            if not hinge: 
+                err_G = loss(d_out, true_labels)
+            else:
+                err_G= (-d_out).mean()
+            err_G+= 0.5*aux_loss(aux_fake, fake_Y)# + patch_out_fake*0.1
+            err_G.backward()
+            g_optimizer.step()
+
+            D_loss += err_D.item()
+            G_loss += err_G.item()
+        
+        D_loss /= num_batches
+        G_loss /= num_batches
+        d_losses.append(D_loss)
+        g_losses.append(G_loss)
+        print(f"Epoch {epoch} Discriminator loss: {D_loss}, Generator loss: {G_loss}")
+        if epoch % 2 == 0 and print_images:
+            g_network.eval()
+            with torch.no_grad():
+                label = real_train[np.random.randint(0, train_size -1)][1].to(device)
+                out = g_network(torch.randn((1, nz)).to(device), label.unsqueeze(0))
+                out = (out + 1) / 2
+                out = out.permute([0, 2, 3, 1])[0].cpu()
+                fig = plt.figure(figsize=(8,8))
+                plt.imshow(out)
+                plt.title(f"{label.cpu().numpy()}")
+                plt.axis("off")
+                fig.savefig(print_images + f"/image_{epoch}")
+        if epoch % 20 == 0 and checkpoint_dir:
+            print("Saving.")
+            torch.save(g_network.state_dict(), checkpoint_dir + "generator.pt")
+            torch.save(d_network.state_dict(), checkpoint_dir + "discriminator.pt")
+
+
+    return {"epochs": epochs, "g_losses": g_losses, "d_losses": d_losses}
 
 
 train = RetinaMultiLabelDataset(train_labels, train_images, transform = transform)
