@@ -9,8 +9,9 @@ BATCH = 16
 SIZE = 128
 NZ = 128
 
+
 transform = transforms.Compose([
-    transforms.Resize((256, 256)),
+    transforms.Resize((128, 128)),
     transforms.ToTensor(),
  #   transforms.ColorJitter(brightness=0.3, saturation = 0.1, hue = 0.1),
     transforms.Normalize(

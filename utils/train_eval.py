@@ -9,7 +9,8 @@ import torch.optim as optim
 from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from torchvision import transforms, models
-from sklearn.metrics import cohen_kappa_score, classification_report, accuracy_score, f1_score
+import torch.nn.functional as F
+from sklearn.metrics import classification_report, accuracy_score, f1_score
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
@@ -529,8 +530,6 @@ def train_dcgan(nz, batch_size, g_network, d_network, g_optimizer, d_optimizer, 
     train_size = len(real_train)
     num_batches = len(train_loader)
 #    val_size = len(eval_data)
-    if print_images:
-        fixed_noise = torch.randn((1, nz)).to(device)
     d_losses = []
     g_losses = []
     loss = nn.BCEWithLogitsLoss()
@@ -577,7 +576,7 @@ def train_dcgan(nz, batch_size, g_network, d_network, g_optimizer, d_optimizer, 
             else:
                 d_loss_fake = F.relu(1 + d_out).mean()
                 err_D = (d_loss_fake + d_loss_real) 
-            err_D += 0.2*aux_loss_real#+ 0.1*(patch_out_fake + patch_loss_real)
+            err_D += 0.5 * aux_loss_real#+ 0.1*(patch_out_fake + patch_loss_real)
             err_D.backward()
             d_optimizer.step()
 
