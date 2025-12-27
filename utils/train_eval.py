@@ -6,13 +6,13 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from tqdm import tqdm
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, models
-from sklearn.metrics import cohen_kappa_score, classification_report, accuracy_score, f1_score
-import matplotlib.pyplot as plt
-import pandas as pd
-import os
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    cohen_kappa_score,
+    f1_score,
+)
+from torch.utils.data import DataLoader, Dataset
 from torchsummary import summary
 from torchvision import models, transforms
 from tqdm import tqdm
@@ -152,10 +152,13 @@ def eval_model(model, dataset, csv_file = None, report_dir = None, cam=None, cam
         data.to_csv(csv_file, index = False)
 
     if cam is not None:
+      offset = 0
       generated = 0
-      images, targets, preds, cams = [], [], [], {}
-      for X, Y in tqdm(loader):
+      images, targets, preds = [], [], []
+      cams = torch.zeros((len(dataset), len(label_names), IMG_SIZE, IMG_SIZE), device=device)
+      for i, (X, Y) in tqdm(enumerate(loader)):
         X = X.to(device)
+        bs = X.size(0)
         with torch.enable_grad():
           model.zero_grad(set_to_none=True)
           logits = model(X)
@@ -166,17 +169,13 @@ def eval_model(model, dataset, csv_file = None, report_dir = None, cam=None, cam
 
             score = logits[:, class_idx].sum()
             score.backward(retain_graph=True)
-
-            cam_map = cam.compute_cam()   # HxW in [0,1]
-            if class_idx not in cams:
-              cams[class_idx] = []
-            cams[class_idx].extend(cam_map)
-
+            cams[offset:offset+bs, class_idx] = cam.compute_cam()  # HxW in [0,1]
 
           preds.extend(output.cpu().numpy())
-          images.extend(X.cpu().numpy())
-          targets.extend(Y)
-
+          images.extend(X.detach().cpu().numpy())
+          targets.extend(Y.detach().cpu().numpy())
+        
+        offset += bs
         generated += 1
         if cam_max_batches and generated >= cam_max_batches:
           break

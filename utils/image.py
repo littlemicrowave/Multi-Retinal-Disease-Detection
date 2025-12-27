@@ -1,13 +1,46 @@
 import random
 
 import numpy as np
+import torch
 from PIL import Image
 
 
-def normalize_image(img):
-    mini = img.min()
-    maxi = img.max()
-    return (img - mini) / (maxi - mini)
+def normalize_image(img, eps=1e-8):
+    """
+    Min–max normalize image(s) to [0,1].
+
+    Supports:
+      - [C, H, W]
+      - [B, C, H, W]
+
+    Normalization is done PER IMAGE (not across the batch).
+    """
+    if not torch.is_tensor(img):
+        img = torch.tensor(img)
+
+    if img.dim() == 3:
+        # [C,H,W] -> [1,C,H,W]
+        img = img.unsqueeze(0)
+        squeeze_back = True
+    elif img.dim() == 4:
+        squeeze_back = False
+    else:
+        raise ValueError(f"Expected 3D or 4D tensor, got shape {img.shape}")
+
+    B = img.size(0)
+
+    # flatten spatial+channel dims
+    img_flat = img.view(B, -1)
+
+    min_val = img_flat.min(dim=1)[0].view(B, 1, 1, 1)
+    max_val = img_flat.max(dim=1)[0].view(B, 1, 1, 1)
+
+    img_norm = (img - min_val) / (max_val - min_val + eps)
+
+    if squeeze_back:
+        img_norm = img_norm.squeeze(0)
+
+    return img_norm
 
 
 class RandomizeOutsideCircle:
