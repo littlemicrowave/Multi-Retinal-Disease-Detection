@@ -8,9 +8,6 @@ import os
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-
-
-
 #defaults
 BATCH = 32
 IMG_SIZE = 256
@@ -62,7 +59,7 @@ class VAEDataset(Dataset):
         return img_in, labels, img_out
 
 class Encoder(nn.Module):
-    def __init__(self, backbone_path = None, latent_channels = 32):
+    def __init__(self, backbone_path = None, latent_channels = 32, label_dim = None):
         super().__init__()
         resnet = models.resnet18(weights = None)
         out_channels = resnet.fc.in_features
@@ -73,6 +70,8 @@ class Encoder(nn.Module):
         self.encoder = nn.Sequential(*list(resnet.children())[:-2])
         self.mu = nn.Conv2d(out_channels, latent_channels, 3, 2, 1)  ## B, 32, 4, 4
         self.logvar = nn.Conv2d(out_channels, latent_channels, 3, 2, 1) # B, 32, 4, 4
+        if label_dim != None:
+            self.film = FiLM(label_dim, out_channels)
     
 
     def freeze_backbone(self):
@@ -99,6 +98,17 @@ class Encoder(nn.Module):
         z = self.reparameterize(mu, log_var)
         # Encoded output, mean, and log variance
         return z, mu, log_var
+    
+    def forward(self, x, labels):
+        encoded = self.encoder(x)
+        encoded = self.film(encoded, labels)
+        mu = self.mu(encoded)
+        log_var = self.logvar(encoded)
+        # Reparameterize the latent variable
+        z = self.reparameterize(mu, log_var)
+        # Encoded output, mean, and log variance
+        return z, mu, log_var
+    
     
 
 class FiLM(nn.Module):
