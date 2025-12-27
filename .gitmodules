@@ -1,3 +1,3 @@
-[submodule "TinyViT"]
-	path = TinyViT
+[submodule "utils/TinyViT"]
+	path = utils/TinyViT
 	url = https://github.com/wkcn/TinyViT.git
