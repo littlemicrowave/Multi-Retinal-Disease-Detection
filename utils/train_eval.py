@@ -512,24 +512,25 @@ def sample(num_samples, decoder, labels, latent_shape = [32,4,4], temp = 0.3, se
 
 
 def train_dcgan(nz, batch_size, g_network, d_network, g_optimizer, d_optimizer, real_train, epochs, grid_size, inject_noise = True, hinge = False, checkpoint_dir = "task4/", print_images = "task4/generated"):
+
     pos = real_train.data[label_names].sum(axis = 0).to_numpy()
     neg = len(real_train.data) - pos
     class_weights = torch.tensor(neg / pos,  dtype=torch.float32)
     labels = torch.tensor(real_train.data[label_names].to_numpy())
     sample_weights = (class_weights * labels).sum(dim = 1)
 
-    def sample_labels(Y):
-        idx = torch.randint(0, len(Y), (batch_size,))
-        return Y[idx].to(device)
 
-    sampler = WeightedRandomSampler(weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+    dataset_sampler = WeightedRandomSampler(weights=sample_weights, num_samples=len(sample_weights), replacement=True)
+    label_sampler = WeightedRandomSampler(weights=sample_weights, num_samples=batch_size, replacement=True)
 
+    def sample_labels():
+        idx = list(label_sampler)
+        return labels[idx].to(device)
 
-    train_loader = DataLoader(real_train, batch_size, shuffle=False, sampler=sampler)
-  #  val_loader = DataLoader(eval_data, BATCH, shuffle=False)
+    train_loader = DataLoader(real_train, batch_size, shuffle=False, sampler=dataset_sampler)
     train_size = len(real_train)
     num_batches = len(train_loader)
-#    val_size = len(eval_data)
+
     d_losses = []
     g_losses = []
     loss = nn.BCEWithLogitsLoss()
@@ -547,7 +548,7 @@ def train_dcgan(nz, batch_size, g_network, d_network, g_optimizer, d_optimizer, 
             # maximize log(D(x)) + log(1 - D(G(z)))
             #pass true batch through D
             if inject_noise:
-                X = torch.clamp(X + torch.empty_like(X, device=device).normal_(0.0, 0.1), -1, 1)
+                X = torch.clamp(X + torch.empty_like(X, device=device).normal_(0.0, 0.05), -1, 1)
             if len(grid_size) == 2:
                 smooth_true =  torch.empty((b_size,1, grid_size[0], grid_size[1]), device=device).uniform_(0.9, 1.0)
                 fake_labels = torch.zeros((b_size,1, grid_size[0], grid_size[1]), dtype=torch.float, device = device)
@@ -566,7 +567,7 @@ def train_dcgan(nz, batch_size, g_network, d_network, g_optimizer, d_optimizer, 
 
             #fake batch
             noise = torch.randn((b_size, nz), dtype = torch.float, device = device)
-            fake_Y = sample_labels(Y).float()
+            fake_Y = sample_labels().float()
             g_out = g_network(noise, fake_Y)
             d_out, _ = d_network(g_out.detach(), fake_Y)
 
@@ -576,13 +577,16 @@ def train_dcgan(nz, batch_size, g_network, d_network, g_optimizer, d_optimizer, 
             else:
                 d_loss_fake = F.relu(1 + d_out).mean()
                 err_D = (d_loss_fake + d_loss_real) 
-            err_D += 0.5 * aux_loss_real#+ 0.1*(patch_out_fake + patch_loss_real)
+           # aux_loss_fake = aux_loss(preds, fake_Y)
+            err_D += 0.5 * aux_loss_real #+ 0.25 * aux_loss_fake#+ 0.1*(patch_out_fake + patch_loss_real)
+
+
             err_D.backward()
             d_optimizer.step()
 
             #train G Adversarial
             noise = torch.randn(b_size, nz, device=device)
-            fake_Y = sample_labels(Y).float()
+            fake_Y = sample_labels().float()
             g_out = g_network(noise, fake_Y)
             g_optimizer.zero_grad()
             d_out, aux_fake = d_network(g_out, fake_Y)
@@ -592,6 +596,7 @@ def train_dcgan(nz, batch_size, g_network, d_network, g_optimizer, d_optimizer, 
             else:
                 err_G= (-d_out).mean()
             err_G+= 0.5*aux_loss(aux_fake, fake_Y)# + patch_out_fake*0.1
+            
             err_G.backward()
             g_optimizer.step()
 
