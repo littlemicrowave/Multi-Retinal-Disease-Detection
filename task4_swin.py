@@ -7,7 +7,7 @@ checkpoints_dir = "task4/"
 model = SwinClassifier(num_classes=3, pretrained=True).to(device)
 '''
 print("SWIN")
-##Stage 1 classifier + mha finetuning
+##Stage head finetuning
 model.freeze_backbone()
 for param in model.backbone.head.parameters():
         param.requires_grad = True

@@ -1,10 +1,12 @@
 from torchvision.models import swin_v2_t
+from timm.models import tiny_vit
 from torch import nn
 from .train_eval import *
 
 def add_noise(X):
     return torch.clamp(X + torch.empty_like(X).normal_(0.0, 0.05), -1, 1)
 transforms.RandomCrop(15)
+
 train_transform = transforms.Compose([
     transforms.Resize((256, 256)),
     transforms.RandomRotation(degrees=(-90,90)),
@@ -27,6 +29,23 @@ class SwinClassifier(nn.Module):
         else:
             self.backbone = swin_v2_t()
         self.backbone.head = nn.Linear(768, num_classes)
+    def freeze_backbone(self):
+        for p in self.backbone.parameters():
+            p.requires_grad = False
+            
+    def unfreeze_backbone(self):
+        for p in self.backbone.parameters():
+            p.requires_grad = True
+
+    def forward(self, X):
+        return self.backbone(X)
+    
+class TinyViT(nn.Module):
+    def __init__(self, num_classes = 3,  pretrained = True):
+        super().__init__()
+        self.backbone = tiny_vit.tiny_vit_11m_224(pretrained=pretrained)
+        print(self.backbone)
+        self.backbone.head.fc = nn.Linear(448, num_classes)
     def freeze_backbone(self):
         for p in self.backbone.parameters():
             p.requires_grad = False
