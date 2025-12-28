@@ -35,5 +35,5 @@ criterion = nn.BCEWithLogitsLoss()
 train_dcgan(NZ,BATCH, G, D, G_optim, D_optim, train_true, 1000, grid_size=[1], inject_noise=False, hinge=True)#1500
 '''
 labels = torch.tensor([[0, 0, 1], [0, 1, 0], [1, 0, 0], [1, 0, 1]],dtype=torch.float).to(device)
-samples = sample(4, G, labels, [NZ], temp=1, seed=5, n= 3)
+samples = sample(4, G, labels, [NZ], temp=1, seed=100, n= 3)
 save_samples(samples, labels, "task4/generated", denorm=True)
