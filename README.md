@@ -7,7 +7,8 @@
 - `train.csv`, `val.csv`, `offsite_test.csv`, `onsite_test_submission.csv`: labels and test lists.
 - `pretrained_backbone/`: pretrained backbone checkpoints (e.g., ResNet).
 - `trained_models/`: saved checkpoints for tasks 1-3.
-- `task1/`, `task2/`, `task3/`, `task4/`: outputs, reports, submissions, visualizations and models for task 4.
+- `task1/`, `task2/`, `task3/`, `task4/`: outputs, reports, submissions, visualizations.
+- `task4/`: Also contained, Swin, ViT, CVAE encoder/decoder, GAN Generator/Discriminator
 
 Swin is in ZIP archive, due to the GitHub limitations, so if you want to run it, unzip to task4, if model file don't have "classifer" or "head" in name, it is fully tuned one. We suggest to use our module wrappers for models for successeful loading. Scripts for all tasks can have commented code, for instance for classifer head tuning, uncomment, if you want to retune.
 
