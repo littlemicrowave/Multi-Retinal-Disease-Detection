@@ -48,7 +48,7 @@ python redd_task4_vit.py
 python redd_task4_swin.py
 python redd_task4_vae.py
 python redd_task4_dcgan.py
-python redd_task4_grad_cam.py
+python redd_task4_gradcam_overlay.py
 python redd_task4_gradcam_triplet_loss.py
 ```
 
