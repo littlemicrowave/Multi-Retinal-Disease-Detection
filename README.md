@@ -1,5 +1,5 @@
 # Multi-Retinal-Disease-Detection
-
+**[Report](https://github.com/littlemicrowave/Multi-Retinal-Disease-Detection/blob/master/report/report.pdf)**
 ## Project structure
 - `redd_task*.py`: runnable scripts for each task and model variant.
 - `utils/`: shared dataset, model blocks, training and evaluation utilities.
