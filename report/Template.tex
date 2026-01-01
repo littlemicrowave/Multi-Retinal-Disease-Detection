@@ -161,7 +161,7 @@ During training (refining), these class-specific exemplars are incorporated via 
 
 \section{Results}
 \subsection{ResNet and EfficientNet}
-We are putting the most emphasis on the weighted-F1 and macro-F1, considering the multi-label nature of targets. We are reporting the stable on-site macro F1 scores for each experiment, supplied with corresponding detailed full tuning off-site evaluation (Appendix \ref{app:metrics}). We additionally provide fine-tuning schedules for each setup for reproducibility (Appendix \ref{app:settings}).
+We are putting the most emphasis on the weighted-F1 and macro-F1, considering the multi-label nature of targets. We are reporting the lower bound on-site macro F1 scores for each experiment, supplied with corresponding detailed full tuning off-site evaluation (Appendix \ref{app:metrics}). We additionally provide fine-tuning schedules for each setup for reproducibility (Appendix \ref{app:settings}).
 
 Performance of pretrained ResNet18 and EfficientNetB0 backbones was first evaluated without applying any class-balancing strategies, using only the standard BCE loss. On-site results are summarized in table below:
 
